@@ -1,0 +1,64 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  MyIpParameter:
+    Type: String
+    Description: Your current public IP address
+    NoEcho: true
+Resources:
+  EC2SecurityByALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access via port 22, and allow connections from ELB via port 80
+      GroupName: WebServer-SG
+      SecurityGroupIngress:
+        - CidrIp: !Join ['', [!Ref MyIpParameter, '/32']]
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+        - SourceSecurityGroupId: !GetAtt [ LoadBalancerSecurityGroup, GroupId ]
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+      VpcId: !ImportValue VpcIdFromNetworkStack
+      Tags: 
+        - Key: Name
+          Value: WebServer-SG
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: allow connections from the Internet
+      GroupName: ALB-SG
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+      VpcId: !ImportValue VpcIdFromNetworkStack
+  RdsSecurityByEC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: RDS-SG
+      GroupDescription: allow connections from Web Server
+      SecurityGroupIngress:
+      - SourceSecurityGroupId: !GetAtt [ EC2SecurityByALBSecurityGroup, GroupId ]
+        IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+      VpcId: !ImportValue VpcIdFromNetworkStack
+Outputs:
+  EC2SecurityByALBSecurityGroup:
+    Description: SG ID for EC2
+    Value: !Ref EC2SecurityByALBSecurityGroup
+    Export:
+      Name: EC2SGFromSecurityStack
+  LoadBalancerSecurityGroup:
+    Description: SG ID for ALB
+    Value: !Ref LoadBalancerSecurityGroup
+    Export:
+      Name: ALBSGFromSecurityStack
+  RdsSecurityByEC2SecurityGroup:
+    Description: SG ID for RDS
+    Value: !Ref RdsSecurityByEC2SecurityGroup
+    Export:
+      Name: RDSSGFromSecurityStack

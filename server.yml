@@ -1,0 +1,73 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  KeyName:
+    Type: String
+    Description: Key pair of the instance
+Resources:
+# Web server
+  RailsAppWebServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: ap-northeast-1a
+      ImageId: ami-0218d08a1f9dac831
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          AssociatePublicIpAddress: true
+          SubnetId: !ImportValue PublicSubnet1aFromNetworkStack
+          GroupSet:
+            - !ImportValue EC2SGFromSecurityStack
+      Tags:
+        - Key: Name
+          Value: WebServer
+# Load balancer
+  LoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /
+      HealthCheckPort: traffic-port
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      Matcher:
+        HttpCode: 200
+      Name: rails-app-target-group
+      Port: 80
+      Protocol: HTTP
+      ProtocolVersion: HTTP1
+      Targets: 
+        - Id: !Ref RailsAppWebServer
+          Port: 80
+      VpcId: !ImportValue VpcIdFromNetworkStack
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: ALB-for-rails-app
+      Scheme: internet-facing
+      Subnets:
+        - !ImportValue PublicSubnet1aFromNetworkStack
+        - !ImportValue PublicSubnet1cFromNetworkStack
+      SecurityGroups:
+        - !ImportValue ALBSGFromSecurityStack
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties: 
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref LoadBalancerTargetGroup
+Outputs:
+# Output Loadbalancer DNS
+  ALB:
+    Description: DNS url of Application Load Balancer
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+# Output EC2 instance ID
+  EC2Instance:
+    Description: EC2 instance
+    Value: !Ref RailsAppWebServer
