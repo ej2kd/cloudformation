@@ -9,7 +9,7 @@ Railsアプリを起動するインフラ環境を構築する
 - RDS
 # 方針
 リソースの依存関係に基づき、テンプレートを分割
-1.ネットワーク: VPC, Subnet, InternetGateway, RoutingTable
-1.セキュリティグループ: SecurityGroup
-1.サーバー: ALB, EC2
-1.データベース: RDS
+1. ネットワーク: VPC, Subnet, InternetGateway, RoutingTable
+1. セキュリティグループ: SecurityGroup
+1. サーバー: ALB, EC2
+1. データベース: RDS
