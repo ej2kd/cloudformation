@@ -4,13 +4,16 @@ Parameters:
   KeyName:
     Type: String
     Description: Key pair of the instance
+  ImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 Resources:
 # Web server
   RailsAppWebServer:
     Type: AWS::EC2::Instance
     Properties:
-      AvailabilityZone: ap-northeast-1a
-      ImageId: ami-0218d08a1f9dac831
+      # AvailabilityZone: ap-northeast-1a
+      ImageId: !Ref ImageId
       InstanceType: t2.micro
       KeyName: !Ref KeyName
       NetworkInterfaces:
@@ -65,8 +68,8 @@ Resources:
 Outputs:
 # Output Loadbalancer DNS
   ALB:
-    Description: DNS url of Application Load Balancer
-    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Description: DNS URL of Application Load Balancer
+    Value: !Sub 'http://${ApplicationLoadBalancer.DNSName}'
 # Output EC2 instance ID
   EC2Instance:
     Description: EC2 instance
