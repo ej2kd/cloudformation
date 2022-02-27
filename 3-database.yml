@@ -36,5 +36,5 @@ Resources:
       DBSubnetGroupDescription: DB Subnet Group for Rails App
       DBSubnetGroupName: RailsAppDBSubnetGroup
       SubnetIds:
-        - !ImportValue PublicSubnet1aFromNetworkStack
-        - !ImportValue PublicSubnet1cFromNetworkStack
+        - !ImportValue PrivateSubnet1aFromNetworkStack
+        - !ImportValue PrivateSubnet1cFromNetworkStack

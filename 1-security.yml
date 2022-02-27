@@ -35,6 +35,9 @@ Resources:
           FromPort: 80
           ToPort: 80
       VpcId: !ImportValue VpcIdFromNetworkStack
+      Tags: 
+        - Key: Name
+          Value: ALB-SG
   RdsSecurityByEC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -46,6 +49,9 @@ Resources:
         FromPort: 3306
         ToPort: 3306
       VpcId: !ImportValue VpcIdFromNetworkStack
+      Tags: 
+        - Key: Name
+          Value: RDS-SG
 Outputs:
   EC2SecurityByALBSecurityGroup:
     Description: SG ID for EC2
